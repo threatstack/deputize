@@ -38,6 +38,7 @@ type DeputizeConfig struct {
   SlackChan string
   SlackEnabled bool
   TokenPath string
+  UserAttribute string
   VaultSecretPath string
   VaultServer string
 }
@@ -54,8 +55,6 @@ func UpdateOnCallRotation() error {
   if err != nil {
     return fmt.Errorf("Unable to parse config.json: %s", err)
   }
-
-  var currentTime = time.Now()
 
   // We use vault for storing the LDAP user password, PD token, Slack token
   vaultConfig := vault.DefaultConfig()
@@ -98,6 +97,7 @@ func UpdateOnCallRotation() error {
         // We've hit one of the schedules we care about, so let's get the list
         // of on-call users between today and +12 hours.
         var onCallOpts pagerduty.ListOnCallUsersOptions
+        var currentTime = time.Now()
         onCallOpts.Since = currentTime.Format("2006-01-02T15:04:05Z07:00")
         hours, _ := time.ParseDuration("12h")
         onCallOpts.Until = currentTime.Add(hours).Format("2006-01-02T15:04:05Z07:00")
@@ -134,7 +134,7 @@ func UpdateOnCallRotation() error {
       return fmt.Errorf("Unable to read RootCAFile: %s", err)
     }
     if !rootCerts.AppendCertsFromPEM(rootCAFile) {
-      return fmt.Errorf("Unable to append certs")
+      return fmt.Errorf("Unable to append to CertPool from RootCAFile")
     }
     tlsConfig.RootCAs = rootCerts
   }
@@ -144,7 +144,7 @@ func UpdateOnCallRotation() error {
     return fmt.Errorf("Unable to start TLS connection: %s", err)
   }
 
-  // get current members of lg-oncall group (needed for removal later)
+  // get current members of the oncall group (needed for removal later)
   currentOnCall := search(l, config.BaseDN, config.OnCallGroup, []string{config.MemberAttribute})
   currentOnCallUids := currentOnCall.Entries[0].GetAttributeValues(config.MemberAttribute)
   log.Printf("Currently on call (LDAP): %s", strings.Join(currentOnCallUids[:],", "))
@@ -153,7 +153,7 @@ func UpdateOnCallRotation() error {
   currentOnCallUids = removeDuplicates(currentOnCallUids)
 
   for _, email := range newOnCallEmails {
-    newOnCall := search(l, config.BaseDN, fmt.Sprintf("(%s=%s)", config.MailAttribute, email), []string{"uid"})
+    newOnCall := search(l, config.BaseDN, fmt.Sprintf("(%s=%s)", config.MailAttribute, email), []string{config.UserAttribute})
     newOnCallUids = append(newOnCallUids, newOnCall.Entries[0].GetAttributeValue("uid"))
   }
   newOnCallUids = removeDuplicates(newOnCallUids)
@@ -188,7 +188,8 @@ func UpdateOnCallRotation() error {
       slackAPI := slack.New(secret.Data["slackAuthToken"].(string))
       slackParams := slack.PostMessageParameters{}
       slackParams.AsUser = true
-      slackMsg := fmt.Sprintf("Updated `lg-oncall` on %s: from {%s} to {%s}",
+      slackMsg := fmt.Sprintf("Updated `%s` on %s: from {%s} to {%s}",
+        config.OnCallGroup,
         config.LDAPServer,
         strings.Join(currentOnCallUids[:],", "),
         strings.Join(newOnCallUids[:],", "))

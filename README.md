@@ -55,6 +55,7 @@ as the command. That config file should look like:
 | `SlackChan`       | String | The channel to post update notifications to                | `#security`                           |
 | `SlackEnabled`    | Bool   | Do you want Deputize to notify slack?                      | `true`                                |
 | `TokenPath`       | String | Path to a file containing a vault token [See note 2]       | `/ramdisk/vault-token`                |
+| `UserAttribute`   | String | LDAP Attribute for a User                                  | `uid`                                 |
 | `VaultSecretPath` | String | Path to where Vault stores secret information for Deputize | `secret/deputize`                     |
 | `VaultServer`     | String | Full path to Vault server                                  | `https://vault.spiffy.io:8200`        |
 
