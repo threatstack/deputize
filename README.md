@@ -58,7 +58,8 @@ as the command. That config file should look like:
 | `VaultSecretPath` | String | Path to where Vault stores secret information for Deputize | `secret/deputize`                     |
 | `VaultServer`     | String | Full path to Vault server                                  | `https://vault.spiffy.io:8200`        |
 
-Notes:
+#### Notes
+
 1. If blank, Go will attempt to use system trust roots.
 1. If blank, will attempt to use the `VAULT_TOKEN` environment variable
 
