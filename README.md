@@ -7,7 +7,7 @@ from a PagerDuty schedule.
 
 To install, use `go get`: `go get -d github.com/threatstack/deputize`
 
-### Pre-Requesites
+### Pre-Requisites
 
 Deputize requires an LDAP server that supports StartTLS over port 389. This
 LDAP server should have a user that can modify the memberUid attribute of a
