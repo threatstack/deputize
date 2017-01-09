@@ -51,12 +51,16 @@ as the command. That config file should look like:
 | `OnCallGroup`     | String | The search string for the LDAP On Call Group               | `(cn=oncall)`                         |
 | `OnCallGroupDN`   | String | Full DN for the LDAP On Call Group                         | `cn=oncall,ou=groups,dc=spiffy,dc=io` |
 | `OnCallSchedules` | Array  | The names of the PagerDuty Schedules to sync               | `["OnCall1", "OnCall2"]`              |
-| `RootCAFile`      | String | A path to a file full of trusted root CAs                  | `/etc/ssl/certs/ca-certificates.crt`  |
+| `RootCAFile`      | String | A path to a file full of trusted root CAs [See note 1]     | `/etc/ssl/certs/ca-certificates.crt`  |
 | `SlackChan`       | String | The channel to post update notifications to                | `#security`                           |
 | `SlackEnabled`    | Bool   | Do you want Deputize to notify slack?                      | `true`                                |
-| `TokenPath`       | String | Path to a file containing a vault token                    | `/ramdisk/vault-token`                |
+| `TokenPath`       | String | Path to a file containing a vault token [See note 2]       | `/ramdisk/vault-token`                |
 | `VaultSecretPath` | String | Path to where Vault stores secret information for Deputize | `secret/deputize`                     |
 | `VaultServer`     | String | Full path to Vault server                                  | `https://vault.spiffy.io:8200`        |
+
+Notes:
+1. If blank, Go will attempt to use system trust roots.
+1. If blank, will attempt to use the `VAULT_TOKEN` environment variable
 
 ### LDAP Configuration
 
