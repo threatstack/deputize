@@ -7,8 +7,12 @@
 package command
 
 import (
-  "log"
+  "github.com/Graylog2/go-gelf/gelf"
+  "github.com/threatstack/deputize/config"
   "github.com/threatstack/deputize/oncall"
+  "io"
+  "log"
+  "os"
   "strings"
 )
 
@@ -19,7 +23,18 @@ type OncallCommand struct {
 
 // Run actually runs oncall/oncall.go
 func (c *OncallCommand) Run(args []string) int {
-  err := oncall.UpdateOnCallRotation()
+  var conf = config.Config
+  if conf.GrayLogEnabled == true {
+    if conf.GrayLogAddress == "" {
+      log.Fatalf("GrayLogEnabled is true, and no graylog address was specified\n")
+    }
+    gelfWriter, err := gelf.NewWriter(conf.GrayLogAddress)
+    if err != nil {
+      log.Fatalf("gelf.NewWriter: %s", err)
+    }
+    log.SetOutput(io.MultiWriter(os.Stdout, gelfWriter))
+  }
+  err := oncall.UpdateOnCallRotation(conf)
   if err != nil {
     log.Fatalf("Oncall update failed: %s", err)
   }

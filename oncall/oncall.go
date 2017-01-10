@@ -9,11 +9,11 @@ package oncall
 import (
   "crypto/tls"
   "crypto/x509"
-  "encoding/json"
   "fmt"
+  vault "github.com/hashicorp/vault/api"
   "github.com/nlopes/slack"
   "github.com/PagerDuty/go-pagerduty"
-  vault "github.com/hashicorp/vault/api"
+  "github.com/threatstack/deputize/config"
   "gopkg.in/ldap.v2"
   "io/ioutil"
   "log"
@@ -23,65 +23,34 @@ import (
   "time"
 )
 
-// DeputizeConfig is our config struct
-type DeputizeConfig struct {
-  BaseDN string
-  LDAPServer string
-  LDAPPort int
-  MailAttribute string
-  MemberAttribute string
-  ModUserDN string
-  OnCallGroup string
-  OnCallGroupDN string
-  OnCallSchedules []string
-  RootCAFile string
-  SlackChan string
-  SlackEnabled bool
-  TokenPath string
-  UserAttribute string
-  VaultSecretPath string
-  VaultServer string
-}
-
-// UpdateOnCallRotation - read in config and update the on call config.
-func UpdateOnCallRotation() error {
-  // Configure the things
-  var config DeputizeConfig
-  var cfile = "config.json"
-  jsonConfig, _ := os.Open(cfile)
-  decoder := json.NewDecoder(jsonConfig)
-  config = DeputizeConfig{}
-  err := decoder.Decode(&config)
-  if err != nil {
-    return fmt.Errorf("Unable to parse config.json: %s", err)
-  }
-
+// UpdateOnCallRotation - read in config and update the on call conf.
+func UpdateOnCallRotation(conf config.DeputizeConfig) error {
   // We use vault for storing the LDAP user password, PD token, Slack token
   vaultConfig := vault.DefaultConfig()
-  vaultConfig.Address = config.VaultServer
+  vaultConfig.Address = conf.VaultServer
   vaultClient, err := vault.NewClient(vaultConfig)
   if err != nil {
     return fmt.Errorf("Error initializing Vault client: %s\n", err)
   }
-  if config.TokenPath == "" {
+  if conf.TokenPath == "" {
     if os.Getenv("VAULT_TOKEN") == "" {
       return fmt.Errorf("TokenPath isn't set & no VAULT_TOKEN env present")
     }
   } else {
-    vaultToken, err := ioutil.ReadFile(config.TokenPath)
+    vaultToken, err := ioutil.ReadFile(conf.TokenPath)
     if err != nil {
-      return fmt.Errorf("Unable to read host token from %s", config.TokenPath)
+      return fmt.Errorf("Unable to read host token from %s", conf.TokenPath)
     }
     vaultClient.SetToken(strings.TrimSpace(string(vaultToken)))
   }
   secret, err := vaultClient.Logical().Read("secret/deputize")
   if err != nil {
-    return fmt.Errorf("Unable to read secrets from vault: ", config.VaultSecretPath)
+    return fmt.Errorf("Unable to read secrets from vault: ", conf.VaultSecretPath)
   }
 
   // Begin talking to PagerDuty
   client := pagerduty.NewClient(secret.Data["pdAuthToken"].(string))
-  log.Printf("Deputize starting. Oncall groups: %s", strings.Join(config.OnCallSchedules[:],", "))
+  log.Printf("Deputize starting. Oncall groups: %s", strings.Join(conf.OnCallSchedules[:],", "))
   var newOnCallEmails []string
   var newOnCallUids []string
 
@@ -93,7 +62,7 @@ func UpdateOnCallRotation() error {
     return fmt.Errorf("PagerDuty Client says: %s", err)
   } else {
     for _, p := range allSchedulesPD.Schedules {
-      if contains(config.OnCallSchedules, p.Name) {
+      if contains(conf.OnCallSchedules, p.Name) {
         // We've hit one of the schedules we care about, so let's get the list
         // of on-call users between today and +12 hours.
         var onCallOpts pagerduty.ListOnCallUsersOptions
@@ -115,7 +84,7 @@ func UpdateOnCallRotation() error {
   }
 
   // Now to figure out what LDAP user the email correlates to
-  l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", config.LDAPServer, config.LDAPPort))
+  l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", conf.LDAPServer, conf.LDAPPort))
   if err != nil {
     log.Fatal(err)
   }
@@ -124,12 +93,12 @@ func UpdateOnCallRotation() error {
   // RootCA setup
   tlsConfig := &tls.Config{
       InsecureSkipVerify: false,
-      ServerName: config.LDAPServer,
+      ServerName: conf.LDAPServer,
     }
 
-  if config.RootCAFile != "" {
+  if conf.RootCAFile != "" {
     rootCerts := x509.NewCertPool()
-    rootCAFile, err := ioutil.ReadFile(config.RootCAFile)
+    rootCAFile, err := ioutil.ReadFile(conf.RootCAFile)
     if err != nil {
       return fmt.Errorf("Unable to read RootCAFile: %s", err)
     }
@@ -145,15 +114,15 @@ func UpdateOnCallRotation() error {
   }
 
   // get current members of the oncall group (needed for removal later)
-  currentOnCall := search(l, config.BaseDN, config.OnCallGroup, []string{config.MemberAttribute})
-  currentOnCallUids := currentOnCall.Entries[0].GetAttributeValues(config.MemberAttribute)
+  currentOnCall := search(l, conf.BaseDN, conf.OnCallGroup, []string{conf.MemberAttribute})
+  currentOnCallUids := currentOnCall.Entries[0].GetAttributeValues(conf.MemberAttribute)
   log.Printf("Currently on call (LDAP): %s", strings.Join(currentOnCallUids[:],", "))
   // yeah, we *shouldnt* need to do this, but I want to make sure
   // both slices are sorted the same way so DeepEqual works
   currentOnCallUids = removeDuplicates(currentOnCallUids)
 
   for _, email := range newOnCallEmails {
-    newOnCall := search(l, config.BaseDN, fmt.Sprintf("(%s=%s)", config.MailAttribute, email), []string{config.UserAttribute})
+    newOnCall := search(l, conf.BaseDN, fmt.Sprintf("(%s=%s)", conf.MailAttribute, email), []string{conf.UserAttribute})
     newOnCallUids = append(newOnCallUids, newOnCall.Entries[0].GetAttributeValue("uid"))
   }
   newOnCallUids = removeDuplicates(newOnCallUids)
@@ -165,35 +134,35 @@ func UpdateOnCallRotation() error {
   } else {
     log.Printf("Replacing LDAP with PagerDuty information.\n")
 
-    if err := l.Bind(config.ModUserDN, secret.Data["modUserPW"].(string)); err != nil {
-      return fmt.Errorf("Unable to bind to LDAP as %s", config.ModUserDN)
+    if err := l.Bind(conf.ModUserDN, secret.Data["modUserPW"].(string)); err != nil {
+      return fmt.Errorf("Unable to bind to LDAP as %s", conf.ModUserDN)
     }
 
     if len(currentOnCallUids) > 0 {
       log.Printf("LDAP: Deleting old UIDs")
-      delUsers := ldap.NewModifyRequest(config.OnCallGroupDN)
-      delUsers.Delete(config.MemberAttribute, currentOnCallUids)
+      delUsers := ldap.NewModifyRequest(conf.OnCallGroupDN)
+      delUsers.Delete(conf.MemberAttribute, currentOnCallUids)
       if err = l.Modify(delUsers); err != nil {
         return fmt.Errorf("Unable to delete existing users from LDAP")
       }
     }
     log.Printf("LDAP: Adding new UIDs")
-    addUsers := ldap.NewModifyRequest(config.OnCallGroupDN)
-    addUsers.Add(config.MemberAttribute, newOnCallUids)
+    addUsers := ldap.NewModifyRequest(conf.OnCallGroupDN)
+    addUsers.Add(conf.MemberAttribute, newOnCallUids)
     if err = l.Modify(addUsers); err != nil {
       return fmt.Errorf("Unable to add new users to LDAP")
     }
 
-    if config.SlackEnabled == true {
+    if conf.SlackEnabled == true {
       slackAPI := slack.New(secret.Data["slackAuthToken"].(string))
       slackParams := slack.PostMessageParameters{}
       slackParams.AsUser = true
       slackMsg := fmt.Sprintf("Updated `%s` on %s: from {%s} to {%s}",
-        config.OnCallGroup,
-        config.LDAPServer,
+        conf.OnCallGroup,
+        conf.LDAPServer,
         strings.Join(currentOnCallUids[:],", "),
         strings.Join(newOnCallUids[:],", "))
-      _,_,err := slackAPI.PostMessage(config.SlackChan, slackMsg, slackParams)
+      _,_,err := slackAPI.PostMessage(conf.SlackChan, slackMsg, slackParams)
       if err != nil {
         log.Printf("Warning: Got %s back from Slack API\n", err)
       }

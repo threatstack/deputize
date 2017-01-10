@@ -23,6 +23,8 @@ as the command. That config file should look like:
 ```
 {
   "BaseDN": "",
+  "GrayLogEnabled": "",
+  "GrayLogAddress": "",
   "LDAPServer": "",
   "LDAPPort": 1234,
   "MailAttribute": "",
@@ -43,6 +45,8 @@ as the command. That config file should look like:
 | Variable          | Type   | Purpose                                                    | Possible Value                        |
 |-------------------|--------|------------------------------------------------------------|---------------------------------------|
 | `BaseDN`          | String | Base DN for your LDAP server                               | `dc=spiffy,dc=io`                     |
+| `GrayLogEnabled`  | String | Enable logging to a GrayLog Server                         | `true`                                |
+| `GrayLogAddress`  | String | Graylog Server Address (uses UDP)                          | `graylog.spiffy.io:12201`             |
 | `LDAPServer`      | String | Hostname of your LDAP server                               | `ldap.spiffy.io`                      |
 | `LDAPPort`        | Int    | Port to talk to LDAP on                                    | `389`                                 |
 | `MailAttribute`   | String | LDAP Attribute for a user's email address                  | `mail`                                |
