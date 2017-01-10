@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "TjekprAqFVFJUBkfOY1D3na2wLE=",
+			"path": "github.com/Graylog2/go-gelf/gelf",
+			"revision": "5bfd5bbbfe86489017c268bf86539fcec7e28d8e",
+			"revisionTime": "2016-08-02T08:57:31Z"
+		},
+		{
 			"checksumSHA1": "wzzdybMOEWsQ/crdkpTLneeob2U=",
 			"path": "github.com/PagerDuty/go-pagerduty",
 			"revision": "317bca1364fc322f4d6f8eeb276e931b6667b43b",
