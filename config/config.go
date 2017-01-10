@@ -3,12 +3,16 @@ package config
 import (
   "encoding/json"
   "io/ioutil"
+  "os"
 )
 
 var Config DeputizeConfig
+var ConfigFile = "config.json"
 
 func init() {
-  Config = NewConfig("config.json")
+  if _, err := os.Stat(ConfigFile); err == nil {
+    Config = NewConfig(ConfigFile)
+  }
 }
 
 // DeputizeConfig is our config struct

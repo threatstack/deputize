@@ -23,6 +23,9 @@ type OncallCommand struct {
 
 // Run actually runs oncall/oncall.go
 func (c *OncallCommand) Run(args []string) int {
+  if _, err := os.Stat(config.ConfigFile); os.IsNotExist(err) {
+    log.Fatalf("No config file present - see github.com/threatstack/deputize for more information.\n")
+  }
   var conf = config.Config
   if conf.GrayLogEnabled == true {
     if conf.GrayLogAddress == "" {
