@@ -7,9 +7,14 @@ import (
 )
 
 var Config DeputizeConfig
-var ConfigFile = "config.json"
+var ConfigFile string
 
 func init() {
+  if os.Getenv("DEPUTIZE_CONFIG") == "" {
+    ConfigFile = "config.json"
+  } else {
+    ConfigFile = os.Getenv("DEPUTIZE_CONFIG")
+  }
   if _, err := os.Stat(ConfigFile); err == nil {
     Config = NewConfig(ConfigFile)
   }

@@ -18,7 +18,8 @@ Deputize also requires Vault to store secrets.
 ### Configuration
 
 Deputize is configured using a `config.json` file located in the same directory
-as the command. That config file should look like:
+as the command (or you can specify a direct path to it using `DEPUTIZE_CONFIG`).
+That config file should contain:
 
 ```
 {
@@ -26,7 +27,7 @@ as the command. That config file should look like:
   "GrayLogEnabled": "",
   "GrayLogAddress": "",
   "LDAPServer": "",
-  "LDAPPort": 1234,
+  "LDAPPort": 0,
   "MailAttribute": "",
   "MemberAttribute": "",
   "ModUserDN": "",
