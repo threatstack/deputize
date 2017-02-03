@@ -63,6 +63,7 @@ That config file should contain:
 | `UserAttribute`   | String | LDAP Attribute for a User                                  | `uid`                                 |
 | `VaultSecretPath` | String | Path to where Vault stores secret information for Deputize | `secret/deputize`                     |
 | `VaultServer`     | String | Full path to Vault server                                  | `https://vault.spiffy.io:8200`        |
+| `Quiet`           | Bool   | If true, wont display any log output                       | `true`                                |
 
 #### Notes
 

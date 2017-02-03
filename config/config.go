@@ -40,6 +40,7 @@ type DeputizeConfig struct {
   UserAttribute string
   VaultSecretPath string
   VaultServer string
+  Quiet bool
 }
 
 func NewConfig(fname string) DeputizeConfig {

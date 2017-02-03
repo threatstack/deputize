@@ -50,7 +50,9 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
 
   // Begin talking to PagerDuty
   client := pagerduty.NewClient(secret.Data["pdAuthToken"].(string))
-  log.Printf("Deputize starting. Oncall groups: %s", strings.Join(conf.OnCallSchedules[:],", "))
+  if !conf.Quiet {
+    log.Printf("Deputize starting. Oncall groups: %s", strings.Join(conf.OnCallSchedules[:],", "))
+  }
   var newOnCallEmails []string
   var newOnCallUids []string
 
@@ -70,8 +72,10 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
         onCallOpts.Since = currentTime.Format("2006-01-02T15:04:05Z07:00")
         hours, _ := time.ParseDuration("12h")
         onCallOpts.Until = currentTime.Add(hours).Format("2006-01-02T15:04:05Z07:00")
-        log.Printf("Getting oncall for schedule \"%s\" (%s) between %s and %s",
-          p.Name, p.APIObject.ID, onCallOpts.Since, onCallOpts.Until)
+        if !conf.Quiet {
+          log.Printf("Getting oncall for schedule \"%s\" (%s) between %s and %s",
+            p.Name, p.APIObject.ID, onCallOpts.Since, onCallOpts.Until)
+        }
         if oncall, err := client.ListOnCallUsers(p.APIObject.ID, onCallOpts); err != nil {
             return fmt.Errorf("Unable to ListOnCallUsers: %s", err)
         } else {
@@ -116,7 +120,9 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
   // get current members of the oncall group (needed for removal later)
   currentOnCall := search(l, conf.BaseDN, conf.OnCallGroup, []string{conf.MemberAttribute})
   currentOnCallUids := currentOnCall.Entries[0].GetAttributeValues(conf.MemberAttribute)
-  log.Printf("Currently on call (LDAP): %s", strings.Join(currentOnCallUids[:],", "))
+  if !conf.Quiet {
+    log.Printf("Currently on call (LDAP): %s", strings.Join(currentOnCallUids[:],", "))
+  }
   // yeah, we *shouldnt* need to do this, but I want to make sure
   // both slices are sorted the same way so DeepEqual works
   currentOnCallUids = removeDuplicates(currentOnCallUids)
@@ -127,26 +133,35 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
   }
   newOnCallUids = removeDuplicates(newOnCallUids)
 
-  log.Printf("New on call (PagerDuty): %s", strings.Join(newOnCallUids[:],", "))
-
+  if !conf.Quiet {
+    log.Printf("New on call (PagerDuty): %s", strings.Join(newOnCallUids[:],", "))
+  }
   if reflect.DeepEqual(currentOnCallUids,newOnCallUids) {
-    log.Printf("LDAP and PagerDuty match, doing nothing.\n")
+    if !conf.Quiet {
+      log.Printf("LDAP and PagerDuty match, doing nothing.\n")
+    }
   } else {
-    log.Printf("Replacing LDAP with PagerDuty information.\n")
+    if !conf.Quiet {
+      log.Printf("Replacing LDAP with PagerDuty information.\n")
+    }
 
     if err := l.Bind(conf.ModUserDN, secret.Data["modUserPW"].(string)); err != nil {
       return fmt.Errorf("Unable to bind to LDAP as %s", conf.ModUserDN)
     }
 
     if len(currentOnCallUids) > 0 {
-      log.Printf("LDAP: Deleting old UIDs")
+      if !conf.Quiet {
+        log.Printf("LDAP: Deleting old UIDs")
+      }
       delUsers := ldap.NewModifyRequest(conf.OnCallGroupDN)
       delUsers.Delete(conf.MemberAttribute, currentOnCallUids)
       if err = l.Modify(delUsers); err != nil {
         return fmt.Errorf("Unable to delete existing users from LDAP")
       }
     }
-    log.Printf("LDAP: Adding new UIDs")
+    if !conf.Quiet {
+      log.Printf("LDAP: Adding new UIDs")
+    }
     addUsers := ldap.NewModifyRequest(conf.OnCallGroupDN)
     addUsers.Add(conf.MemberAttribute, newOnCallUids)
     if err = l.Modify(addUsers); err != nil {
