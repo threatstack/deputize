@@ -70,7 +70,7 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
         var onCallOpts pagerduty.ListOnCallUsersOptions
         var currentTime = time.Now()
         onCallOpts.Since = currentTime.Format("2006-01-02T15:04:05Z07:00")
-        hours, _ := time.ParseDuration("12h")
+        hours, _ := time.ParseDuration(conf.RunDuration)
         onCallOpts.Until = currentTime.Add(hours).Format("2006-01-02T15:04:05Z07:00")
         if !conf.Quiet {
           log.Printf("Getting oncall for schedule \"%s\" (%s) between %s and %s",
@@ -177,9 +177,11 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
         conf.LDAPServer,
         strings.Join(currentOnCallUids[:],", "),
         strings.Join(newOnCallUids[:],", "))
-      _,_,err := slackAPI.PostMessage(conf.SlackChan, slackMsg, slackParams)
-      if err != nil {
-        log.Printf("Warning: Got %s back from Slack API\n", err)
+      for _, channel := range conf.SlackChan {
+        _,_,err := slackAPI.PostMessage(channel, slackMsg, slackParams)
+        if err != nil {
+          log.Printf("Warning: Got %s back from Slack API\n", err)
+        }
       }
     }
   }

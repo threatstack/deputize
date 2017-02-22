@@ -34,7 +34,8 @@ type DeputizeConfig struct {
   OnCallGroupDN string
   OnCallSchedules []string
   RootCAFile string
-  SlackChan string
+  RunDuration string
+  SlackChan []string
   SlackEnabled bool
   TokenPath string
   UserAttribute string

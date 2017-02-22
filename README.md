@@ -33,13 +33,16 @@ That config file should contain:
   "ModUserDN": "",
   "OnCallGroup": "",
   "OnCallGroupDN": "",
-  "OnCallSchedules": ,
+  "OnCallSchedules": [""],
   "RootCAFile": "",
+  "RunDuration": "",
   "SlackChan": "",
-  "SlackEnabled": ,
+  "SlackEnabled": true,
   "TokenPath": "",
+  "UserAttribute": "",
   "VaultSecretPath": "",
-  "VaultServer": ""
+  "VaultServer": "",
+  "Quiet": true
 }
 ```
 
@@ -57,7 +60,8 @@ That config file should contain:
 | `OnCallGroupDN`   | String | Full DN for the LDAP On Call Group                         | `cn=oncall,ou=groups,dc=spiffy,dc=io` |
 | `OnCallSchedules` | Array  | The names of the PagerDuty Schedules to sync               | `["OnCall1", "OnCall2"]`              |
 | `RootCAFile`      | String | A path to a file full of trusted root CAs [See note 1]     | `/etc/ssl/certs/ca-certificates.crt`  |
-| `SlackChan`       | String | The channel to post update notifications to                | `#security`                           |
+| `RunDuration`     | String | How far ahead should Deputize look at the oncall schedule? | `1m`                                  |
+| `SlackChan`       | Array  | The channel(s) to post update notifications to             | `#security`                           |
 | `SlackEnabled`    | Bool   | Do you want Deputize to notify slack?                      | `true`                                |
 | `TokenPath`       | String | Path to a file containing a vault token [See note 2]       | `/ramdisk/vault-token`                |
 | `UserAttribute`   | String | LDAP Attribute for a User                                  | `uid`                                 |
