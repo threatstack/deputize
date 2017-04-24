@@ -3,6 +3,9 @@
 `deputize` is a handy tool to update an LDAP group with on-call information
 from a PagerDuty schedule.
 
+To learn more about why wrote Deputize, see our blog.
+* [Balancing Security and Your On-Call Rotation Using Deputize](https://blog.threatstack.com/balancing-security-and-your-on-call-rotation-using-deputize)
+
 ## Installation
 
 To install, use `go get`: `go get -d github.com/threatstack/deputize`
