@@ -16,7 +16,7 @@ Deputize requires an LDAP server that supports StartTLS over port 389. This
 LDAP server should have a user that can modify the memberUid attribute of a
 group.
 
-Deputize also requires Vault to store secrets.
+Deputize also requires [Vault](https://github.com/hashicorp/vault) to store secrets.
 
 ### Configuration
 
