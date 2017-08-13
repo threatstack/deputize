@@ -1,7 +1,8 @@
 // deputize - Update an LDAP group with info from the PagerDuty API
 // version.go: CLI initialization
 //
-// Copyright 2017 Threat Stack, Inc. All rights reserved.
+// Copyright 2017 Threat Stack, Inc.
+// Licensed under the BSD 3-clause license; see LICENSE for more information.
 // Author: Patrick T. Cable II <pat.cable@threatstack.com>
 
 package main
