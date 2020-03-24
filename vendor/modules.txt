@@ -1,0 +1,93 @@
+# github.com/Graylog2/go-gelf v0.0.0-20160802085731-5bfd5bbbfe86
+## explicit
+github.com/Graylog2/go-gelf/gelf
+# github.com/PagerDuty/go-pagerduty v0.0.0-20161220220508-317bca1364fc
+## explicit
+github.com/PagerDuty/go-pagerduty
+# github.com/armon/go-radix v0.0.0-20160115234725-4239b77079c7
+## explicit
+github.com/armon/go-radix
+# github.com/bgentry/speakeasy v0.0.0-20161015143505-675b82c74c0e
+## explicit
+github.com/bgentry/speakeasy
+# github.com/fatih/structs v1.1.0
+## explicit
+github.com/fatih/structs
+# github.com/golang/protobuf v1.2.0
+github.com/golang/protobuf/proto
+# github.com/google/go-querystring v1.0.0
+github.com/google/go-querystring/query
+# github.com/hashicorp/errwrap v1.0.0
+github.com/hashicorp/errwrap
+# github.com/hashicorp/go-cleanhttp v0.5.1
+github.com/hashicorp/go-cleanhttp
+# github.com/hashicorp/go-multierror v1.0.0
+## explicit
+github.com/hashicorp/go-multierror
+# github.com/hashicorp/go-retryablehttp v0.6.4
+github.com/hashicorp/go-retryablehttp
+# github.com/hashicorp/go-rootcerts v1.0.2
+## explicit
+github.com/hashicorp/go-rootcerts
+# github.com/hashicorp/hcl v1.0.0
+## explicit
+github.com/hashicorp/hcl
+github.com/hashicorp/hcl/hcl/ast
+github.com/hashicorp/hcl/hcl/parser
+github.com/hashicorp/hcl/hcl/scanner
+github.com/hashicorp/hcl/hcl/strconv
+github.com/hashicorp/hcl/hcl/token
+github.com/hashicorp/hcl/json/parser
+github.com/hashicorp/hcl/json/scanner
+github.com/hashicorp/hcl/json/token
+# github.com/hashicorp/vault v0.6.5-0.20161220182942-1ae7dafd57f7
+## explicit
+github.com/hashicorp/vault/api
+github.com/hashicorp/vault/helper/compressutil
+github.com/hashicorp/vault/helper/jsonutil
+# github.com/mattn/go-isatty v0.0.0-20161123143637-30a891c33c7c
+## explicit
+github.com/mattn/go-isatty
+# github.com/mitchellh/cli v0.0.0-20161029232712-fa17b36f6c61
+## explicit
+github.com/mitchellh/cli
+# github.com/mitchellh/go-homedir v1.1.0
+github.com/mitchellh/go-homedir
+# github.com/mitchellh/mapstructure v1.2.2
+## explicit
+github.com/mitchellh/mapstructure
+# github.com/nlopes/slack v0.0.2-0.20161003122758-a1a63712460a
+## explicit
+github.com/nlopes/slack
+# github.com/sethgrid/pester v0.0.0-20190127155807-68a33a018ad0
+## explicit
+github.com/sethgrid/pester
+# github.com/xanzy/go-gitlab v0.29.0
+## explicit
+github.com/xanzy/go-gitlab
+# golang.org/x/net v0.0.0-20181108082009-03003ca0c849
+golang.org/x/net/context
+golang.org/x/net/context/ctxhttp
+golang.org/x/net/websocket
+# golang.org/x/oauth2 v0.0.0-20181106182150-f42d05182288
+golang.org/x/oauth2
+golang.org/x/oauth2/internal
+# golang.org/x/sys v0.0.0-20161011003516-67f277b6fe01
+## explicit
+golang.org/x/sys/unix
+# golang.org/x/time v0.0.0-20191024005414-555d28b269f0
+golang.org/x/time/rate
+# google.golang.org/appengine v1.3.0
+google.golang.org/appengine/internal
+google.golang.org/appengine/internal/base
+google.golang.org/appengine/internal/datastore
+google.golang.org/appengine/internal/log
+google.golang.org/appengine/internal/remote_api
+google.golang.org/appengine/internal/urlfetch
+google.golang.org/appengine/urlfetch
+# gopkg.in/asn1-ber.v1 v1.0.0-20150924051756-4e86f4367175
+## explicit
+gopkg.in/asn1-ber.v1
+# gopkg.in/ldap.v2 v2.4.1
+## explicit
+gopkg.in/ldap.v2
