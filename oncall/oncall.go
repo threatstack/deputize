@@ -3,6 +3,7 @@
 //
 // Copyright 2017-2020 Threat Stack, Inc. All rights reserved.
 // Author: Patrick T. Cable II <pat.cable@threatstack.com>
+// Author: Michael Chmielewski <michael.chmielewski@threatstack.com>
 
 package oncall
 
@@ -221,7 +222,7 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
 
       // Remove existing members of the group, if they exist
       if !conf.Quiet {
-        log.Printf("Removing old approvers %s from Gitlab group: %s", conf.GitlabGroup)
+        log.Printf("Removing old approvers from Gitlab group: %s", conf.GitlabGroup)
       }
       // Get the existing members of the group
       approverGroupMembers, _, err := gitlabClient.Groups.ListGroupMembers(conf.GitlabGroup, &gitlab.ListGroupMembersOptions{})
