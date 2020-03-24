@@ -1,7 +1,7 @@
 // deputize - Update an LDAP group with info from the PagerDuty API
 // oncall.go: On Call Updater
 //
-// Copyright 2017 Threat Stack, Inc. All rights reserved.
+// Copyright 2017-2020 Threat Stack, Inc. All rights reserved.
 // Author: Patrick T. Cable II <pat.cable@threatstack.com>
 
 package oncall
@@ -13,6 +13,7 @@ import (
   vault "github.com/hashicorp/vault/api"
   "github.com/nlopes/slack"
   "github.com/PagerDuty/go-pagerduty"
+  "github.com/xanzy/go-gitlab"
   "github.com/threatstack/deputize/config"
   "gopkg.in/ldap.v2"
   "io/ioutil"
@@ -55,6 +56,8 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
   }
   var newOnCallEmails []string
   var newOnCallUids []string
+  var newOnCallApproverEmails []string
+  var newOnCallApproverGitlabUserIds []int
 
   // Cycle through the schedules and once we hit one we care about, get the
   // email address of the person on call for the date period between runtime
@@ -81,6 +84,9 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
         } else {
           for _, person := range oncall {
             newOnCallEmails = append(newOnCallEmails, person.Email)
+            if conf.GitlabEnabled && p.Name == conf.GitlabApproverSchedule {
+              newOnCallApproverEmails = append(newOnCallApproverEmails, person.Email)
+            }
           }
         }
       }
@@ -167,6 +173,96 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
     if err = l.Modify(addUsers); err != nil {
       return fmt.Errorf("Unable to add new users to LDAP")
     }
+
+  if conf.GitlabEnabled {
+    if !conf.Quiet {
+      log.Printf("Gitlab integration enabled. Gitlab group: %s", conf.GitlabGroup)
+    }
+
+    gitlabClient := gitlab.NewClient(nil, secret.Data["gitlabAuthToken"].(string))
+    gitlabClient.SetBaseURL(conf.GitlabServer+"api/v4")
+
+    // Lets get user ids for On Call people
+    for _, email := range newOnCallApproverEmails {
+      userOptions := &gitlab.ListUsersOptions{Search: gitlab.String(email)}
+      users, _, err := gitlabClient.Users.ListUsers(userOptions)
+      if err != nil {
+        log.Printf("Warning: Got %s back from Gitlab API\n", err)
+      } 
+      if len(users) == 1 {
+        // We expect only one user returned based on an email. We error out otherwise
+        if !conf.Quiet {
+          log.Printf("User found! username is %s for email %s\n", users[0].Username, email)
+        }
+        newOnCallApproverGitlabUserIds = append(newOnCallApproverGitlabUserIds, users[0].ID)
+      } else if len(users) == 0 {
+        if !conf.Quiet {
+          log.Printf("No user found for email %s\n", users[0].Username, email)
+        }        
+      } else {
+        // Lets output some helpful information if we don't get 1 user
+        if !conf.Quiet {
+          for _, user := range users {
+            log.Printf("Found the following users associated with \"%s\": %s\n", email, user.Username)
+          }
+        }
+        return fmt.Errorf("Found more than one user with an email of %s: %d users found", email, len(users))
+      }
+    }
+
+    if len(newOnCallApproverGitlabUserIds) == 0 {
+      // If no users are in the new approver list, leave the group alone
+      log.Printf("No new Approvers, not updating Gitlab group: %s", conf.GitlabGroup)
+    } else {
+      // Add OnCall approvers to approver group
+      if !conf.Quiet {
+        log.Printf("Updating Gitlab group: %s", conf.GitlabGroup)
+      }
+
+      // Remove existing members of the group, if they exist
+      if !conf.Quiet {
+        log.Printf("Removing old approvers %s from Gitlab group: %s", conf.GitlabGroup)
+      }
+      // Get the existing members of the group
+      approverGroupMembers, _, err := gitlabClient.Groups.ListGroupMembers(conf.GitlabGroup, &gitlab.ListGroupMembersOptions{})
+      if err != nil {
+        fmt.Errorf("Gitlab could not get group members: %s\n", err)
+      } 
+      if len(approverGroupMembers) > 0 {
+        // Remove existing members
+        for _, member := range approverGroupMembers {
+          // Don't remove group owner/maintainers
+          if member.AccessLevel < 40 {
+            if !conf.Quiet {
+              log.Printf("Removing user %s", member.Username)
+            }
+            _, err := gitlabClient.GroupMembers.RemoveGroupMember(conf.GitlabGroup, member.ID)
+            if err != nil {
+              fmt.Errorf("Gitlab could not remove group member: %s\n", err)
+            }
+          }
+        }
+      }
+
+      // Add new members to the group
+      if !conf.Quiet {
+        log.Printf("Adding new approvers to Gitlab group: %s", conf.GitlabGroup)
+      }
+      for _, newApproverUserId := range newOnCallApproverGitlabUserIds {
+        if !conf.Quiet {
+          log.Printf("Adding user id %d", newApproverUserId)
+        }
+        addGroupMemberOpts := &gitlab.AddGroupMemberOptions{
+                                UserID: gitlab.Int(newApproverUserId),
+                                AccessLevel: gitlab.AccessLevel(gitlab.DeveloperPermissions),
+        }
+        _, _, err := gitlabClient.GroupMembers.AddGroupMember(conf.GitlabGroup, addGroupMemberOpts)
+        if err != nil {
+          fmt.Errorf("Gitlab could not add group member: %s\n", err)
+        } 
+      }
+    }
+  }
 
     if conf.SlackEnabled == true {
       slackAPI := slack.New(secret.Data["slackAuthToken"].(string))

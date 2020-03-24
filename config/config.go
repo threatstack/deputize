@@ -42,6 +42,11 @@ type DeputizeConfig struct {
   VaultSecretPath string
   VaultServer string
   Quiet bool
+  GitlabEnabled bool
+  GitlabServer string
+  GitlabToken string
+  GitlabGroup string
+  GitlabApproverSchedule string
 }
 
 func NewConfig(fname string) DeputizeConfig {
