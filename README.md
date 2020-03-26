@@ -16,7 +16,8 @@ Deputize requires an LDAP server that supports StartTLS over port 389. This
 LDAP server should have a user that can modify the memberUid attribute of a
 group.
 
-Deputize also requires [Vault](https://github.com/hashicorp/vault) to store secrets.
+Deputize also requires [Vault](https://github.com/hashicorp/vault) to store secrets. As of Version 2.0 this
+uses Vault's KV version 2 API.
 
 ### Configuration
 
@@ -49,32 +50,32 @@ That config file should contain:
 }
 ```
 
-| Variable          | Type   | Purpose                                                    | Possible Value                        |
-|-------------------|--------|------------------------------------------------------------|---------------------------------------|
-| `BaseDN`                 | String | Base DN for your LDAP server                               | `dc=spiffy,dc=io`                |
+| Variable          | Type   | Purpose                                                           | Possible Value                        |
+|-------------------|--------|-------------------------------------------------------------------|---------------------------------------|
+| `BaseDN`                 | String | Base DN for your LDAP server                               | `dc=spiffy,dc=io`                     |
 | `GrayLogEnabled`         | String | Enable logging to a GrayLog Server                         | `true`                                |
-| `GrayLogAddress`         | String | Graylog Server Address (uses UDP)                          | `graylog.spiffy.io:12201`        |
-| `LDAPServer`             | String | Hostname of your LDAP server                               | `ldap.spiffy.io`                 |
-| `LDAPPort`               | Int    | Port to talk to LDAP on                                    | `389`                                |
+| `GrayLogAddress`         | String | Graylog Server Address (uses UDP)                          | `graylog.spiffy.io:12201`             |
+| `LDAPServer`             | String | Hostname of your LDAP server                               | `ldap.spiffy.io`                      |
+| `LDAPPort`               | Int    | Port to talk to LDAP on                                    | `389`                                 |
 | `MailAttribute`          | String | LDAP Attribute for a user's email address                  | `mail`                                |
-| `MemberAttribute`        | String | LDAP Attribute for a group member                          | `memberUid`                                |
-| `ModUserDN`              | String | The DN of the user that edits LDAP                         | `cn=deputize,dc=spiffy,dc=io`    |
-| `OnCallGroup`            | String | The search string for the LDAP On Call Group               | `(cn=oncall)`                               |
+| `MemberAttribute`        | String | LDAP Attribute for a group member                          | `memberUid`                           |
+| `ModUserDN`              | String | The DN of the user that edits LDAP                         | `cn=deputize,dc=spiffy,dc=io`         |
+| `OnCallGroup`            | String | The search string for the LDAP On Call Group               | `(cn=oncall)`                         |
 | `OnCallGroupDN`          | String | Full DN for the LDAP On Call Group                         | `cn=oncall,ou=groups,dc=spiffy,dc=io` |
-| `OnCallSchedules`        | Array  | The names of the PagerDuty Schedules to sync               | `["OnCall1", "OnCall2"]`         |
-| `RootCAFile`             | String | A path to a file full of trusted root CAs [See note 1]     | `/etc/ssl/certs/ca-certificates.crt`      |
-| `RunDuration`            | String | How far ahead should Deputize look at the oncall schedule? | `1m`                                |
-| `SlackChan`              | Array  | The channel(s) to post update notifications to             | `#security`                                |
+| `OnCallSchedules`        | Array  | The names of the PagerDuty Schedules to sync               | `["OnCall1", "OnCall2"]`              |
+| `RootCAFile`             | String | A path to a file full of trusted root CAs [See note 1]     | `/etc/ssl/certs/ca-certificates.crt`  |
+| `RunDuration`            | String | How far ahead should Deputize look at the oncall schedule? | `1m`                                  |
+| `SlackChan`              | Array  | The channel(s) to post update notifications to             | `#security`                           |
 | `SlackEnabled`           | Bool   | Do you want Deputize to notify slack?                      | `true`                                |
-| `TokenPath`              | String | Path to a file containing a vault token [See note 2]       | `/ramdisk/vault-token`                    |
-| `UserAttribute`          | String | LDAP Attribute for a User                                  | `uid`                                |
-| `VaultSecretPath`        | String | Path to where Vault stores secret information for Deputize | `secret/deputize`                       |
-| `VaultServer`            | String | Full path to Vault server                                  | `https://vault.spiffy.io:8200`   |
+| `TokenPath`              | String | Path to a file containing a vault token [See note 2]       | `/ramdisk/vault-token`                |
+| `UserAttribute`          | String | LDAP Attribute for a User                                  | `uid`                                 |
+| `VaultSecretPath`        | String | Path to where Vault stores secret information for Deputize | `secret/data/deputize`                |
+| `VaultServer`            | String | Full path to Vault server                                  | `https://vault.spiffy.io:8200`        |
 | `Quiet`                  | Bool   | If true, wont display any log output                       | `true`                                |
-| `GitlabEnabled`          | Bool   | If true, will update a group with oncall users             | `false`                                |
-| `GitlabServer`           | String | Hostname of your Gitlab server                             | `https://gitlab.spiffy.io/`      |
-| `GitlabGroup`            | String | Assign oncall people to this Gitlab group                  | `SpiffyGitlabGroup`              |
-| `GitlabApproverSchedule` | String | PagerDuty Schedule of users to assign to Gitlab            | `OnCall1`                                |
+| `GitlabEnabled`          | Bool   | If true, will update a group with oncall users             | `false`                               |
+| `GitlabServer`           | String | Hostname of your Gitlab server                             | `https://gitlab.spiffy.io/`           |
+| `GitlabGroup`            | String | Assign oncall people to this Gitlab group                  | `SpiffyGitlabGroup`                   |
+| `GitlabApproverSchedule` | String | PagerDuty Schedule of users to assign to Gitlab            | `OnCall1`                             |
 
 #### Notes
 
