@@ -15,7 +15,7 @@ require (
 	github.com/mattn/go-isatty v0.0.0-20161123143637-30a891c33c7c // indirect
 	github.com/mitchellh/cli v0.0.0-20161029232712-fa17b36f6c61
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
-	github.com/nlopes/slack v0.0.2-0.20161003122758-a1a63712460a
+	github.com/slack-go/slack v0.9.1
 	github.com/sethgrid/pester v0.0.0-20190127155807-68a33a018ad0 // indirect
 	github.com/xanzy/go-gitlab v0.29.0
 	golang.org/x/sys v0.0.0-20161011003516-67f277b6fe01 // indirect

@@ -65,7 +65,7 @@ That config file should contain:
 | `OnCallSchedules`        | Array  | The names of the PagerDuty Schedules to sync               | `["OnCall1", "OnCall2"]`              |
 | `RootCAFile`             | String | A path to a file full of trusted root CAs [See note 1]     | `/etc/ssl/certs/ca-certificates.crt`  |
 | `RunDuration`            | String | How far ahead should Deputize look at the oncall schedule? | `1m`                                  |
-| `SlackChan`              | Array  | The channel(s) to post update notifications to             | `#security`                           |
+| `SlackChan`              | Array  | The channel(s) to post update notifications to (Slack IDs) | `C8821KJSD`                           |
 | `SlackEnabled`           | Bool   | Do you want Deputize to notify slack?                      | `true`                                |
 | `TokenPath`              | String | Path to a file containing a vault token [See note 2]       | `/ramdisk/vault-token`                |
 | `UserAttribute`          | String | LDAP Attribute for a User                                  | `uid`                                 |

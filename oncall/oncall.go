@@ -20,7 +20,7 @@ import (
 
 	"github.com/PagerDuty/go-pagerduty"
 	vault "github.com/hashicorp/vault/api"
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 	"github.com/threatstack/deputize/config"
 	"github.com/xanzy/go-gitlab"
 	"gopkg.in/ldap.v2"
@@ -280,8 +280,9 @@ func UpdateOnCallRotation(conf config.DeputizeConfig) error {
 				conf.LDAPServer,
 				strings.Join(currentOnCallUids[:], ", "),
 				strings.Join(newOnCallUids[:], ", "))
+
 			for _, channel := range conf.SlackChan {
-				_, _, err := slackAPI.PostMessage(channel, slackMsg, slackParams)
+				_, _, err := slackAPI.PostMessage(channel, slack.MsgOptionPostMessageParameters(slackParams), slack.MsgOptionText(slackMsg, false))
 				if err != nil {
 					log.Printf("Warning: Got %s back from Slack API\n", err)
 				}
