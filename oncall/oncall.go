@@ -1,9 +1,8 @@
 // deputize - Update an LDAP group with info from the PagerDuty API
 // oncall.go: On Call Updater
 //
-// Copyright 2017-2020 Threat Stack, Inc. All rights reserved.
-// Author: Patrick T. Cable II <pat.cable@threatstack.com>
-// Author: Michael Chmielewski <michael.chmielewski@threatstack.com>
+// Copyright 2017-2022 F5 Inc.
+// Licensed under the BSD 3-clause license; see LICENSE for more information.
 
 package oncall
 

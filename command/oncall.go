@@ -1,19 +1,20 @@
 // deputize - Update an LDAP group with info from the PagerDuty API
 // oncall.go: struct for oncall command
 //
-// Copyright 2017 Threat Stack, Inc. All rights reserved.
-// Author: Patrick T. Cable II <pat.cable@threatstack.com>
+// Copyright 2017-2022 F5 Inc.
+// Licensed under the BSD 3-clause license; see LICENSE for more information.
 
 package command
 
 import (
-  "github.com/Graylog2/go-gelf/gelf"
-  "github.com/threatstack/deputize/config"
-  "github.com/threatstack/deputize/oncall"
-  "io"
-  "log"
-  "os"
-  "strings"
+	"io"
+	"log"
+	"os"
+	"strings"
+
+	"github.com/Graylog2/go-gelf/gelf"
+	"github.com/threatstack/deputize/config"
+	"github.com/threatstack/deputize/oncall"
 )
 
 // OncallCommand gets the data from the CLI
@@ -23,25 +24,25 @@ type OncallCommand struct {
 
 // Run actually runs oncall/oncall.go
 func (c *OncallCommand) Run(args []string) int {
-  if _, err := os.Stat(config.ConfigFile); os.IsNotExist(err) {
-    log.Fatalf("No config file present (or invalid format). See README.md.\n")
-  }
-  var conf = config.Config
-  if conf.GrayLogEnabled == true {
-    if conf.GrayLogAddress == "" {
-      log.Fatalf("GrayLogEnabled is true, and no graylog address was specified\n")
-    }
-    gelfWriter, err := gelf.NewWriter(conf.GrayLogAddress)
-    if err != nil {
-      log.Fatalf("gelf.NewWriter: %s", err)
-    }
-    log.SetOutput(io.MultiWriter(os.Stdout, gelfWriter))
-  }
-  err := oncall.UpdateOnCallRotation(conf)
-  if err != nil {
-    log.Fatalf("Oncall update failed: %s", err)
-  }
-  return 0
+	if _, err := os.Stat(config.ConfigFile); os.IsNotExist(err) {
+		log.Fatalf("No config file present (or invalid format). See README.md.\n")
+	}
+	var conf = config.Config
+	if conf.GrayLogEnabled {
+		if conf.GrayLogAddress == "" {
+			log.Fatalf("GrayLogEnabled is true, and no graylog address was specified\n")
+		}
+		gelfWriter, err := gelf.NewWriter(conf.GrayLogAddress)
+		if err != nil {
+			log.Fatalf("gelf.NewWriter: %s", err)
+		}
+		log.SetOutput(io.MultiWriter(os.Stdout, gelfWriter))
+	}
+	err := oncall.UpdateOnCallRotation(conf)
+	if err != nil {
+		log.Fatalf("Oncall update failed: %s", err)
+	}
+	return 0
 }
 
 // Synopsis gives the help output for oncall
