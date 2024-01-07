@@ -1,3 +1,7 @@
+// helpers.go - small useful functions for deputize.
+// Copyright 2024 F5 Inc.
+// Licensed under the BSD 3-clause license; see LICENSE.md for more information.
+
 package main
 
 func contains(str []string, search string) bool {

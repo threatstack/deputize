@@ -1,8 +1,8 @@
-package main
-
 // deputize.go - main function
 // Copyright 2024 F5 Inc.
 // Licensed under the BSD 3-clause license; see LICENSE.md for more information.
+
+package main
 
 import (
 	"context"

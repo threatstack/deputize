@@ -1,3 +1,7 @@
+// config.go - config functions
+// Copyright 2024 F5 Inc.
+// Licensed under the BSD 3-clause license; see LICENSE.md for more information.
+
 package main
 
 import (
@@ -11,10 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 )
-
-// config.go - config functions
-// Copyright 2024 F5 Inc.
-// Licensed under the BSD 3-clause license; see LICENSE.md for more information.
 
 type deputizeConfig struct {
 	SecretPath   string
