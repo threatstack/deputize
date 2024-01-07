@@ -25,9 +25,9 @@ A **Sink** is the destination for those on-call emails you read from the source.
 #### LDAP
 There are many LDAP servers in the world, so we can't give a guide to creating scoped users for all of them. High level, you'll want to make a user (and set that user as `ModUserDN`) that can modify a named on-call group. For OpenLDAP, here's a sample `olcAccess` ACL entry you could use to let a named user edit the `memberUid` attribute of a specific `posixGroup` entry:
 ```
-olcAccess: to dn.base="cn=oncall,ou=groups,dc=spiffy,dc=io"
+olcAccess: to dn.base="cn=oncall,ou=groups,dc=tls,dc=zone"
   attrs=memberUid
-  by dn.exact="cn=deputize,dc=spiffy,dc=io" write
+  by dn.exact="cn=deputize,dc=tls,dc=zone" write
   by * read
 ```
 
