@@ -1,2 +1,5 @@
 *.test
 config.json
+deputize
+deputize.zip
+*.pem
