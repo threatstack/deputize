@@ -179,7 +179,7 @@ func buildSecrets(c *deputizeConfig) (deputizeSecrets, error) {
 	}
 	if c.Source.PagerDuty.Enabled && c.Source.PagerDuty.WithOAuth {
 		input := &secretsmanager.GetSecretValueInput{
-			SecretId: aws.String(c.SecretPath),
+			SecretId: aws.String(c.Source.PagerDuty.OAuthSecretPath),
 		}
 		result, err := svc.GetSecretValue(context.TODO(), input)
 		if err != nil {
@@ -201,6 +201,8 @@ func buildSecrets(c *deputizeConfig) (deputizeSecrets, error) {
 	if len(configErrors) > 0 {
 		return deputizeSecrets{}, fmt.Errorf(buildErrorMsg(configErrors))
 	}
+
+	log.Printf("SECRETS: %+v\n", sec)
 
 	return sec, nil
 }

@@ -82,7 +82,7 @@ Create an execution IAM role for your Lambda function to execute as. You'll want
                 "secretsmanager:ListSecretVersionIds"
             ],
             "Resource": [
-                "arn:aws:secretsmanager:us-east-1:ACCOUNT_NUM_HERE:secret:deputize/myEnv-o9iCSb"
+                "arn:aws:secretsmanager:REGION:AWS_ACCOUNT_NUM:secret:deputize/myEnv-o9iCSb"
             ]
         },
         {
@@ -131,7 +131,9 @@ This is where it all comes together. The configuration for Deputize is sent via 
   "Source": {
     "PagerDuty": {
       "Enabled": true,
-      "OnCallSchedules": ["Ops", "Ops 2nd Level"]
+      "OnCallSchedules": ["Ops", "Ops 2nd Level"],
+      "WithOAuth": true,
+      "OAuthSecretPath": "deputize/source/pagerduty/yourinstance"
     }
   },
   "Sinks": {
