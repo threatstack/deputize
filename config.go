@@ -202,8 +202,6 @@ func buildSecrets(c *deputizeConfig) (deputizeSecrets, error) {
 		return deputizeSecrets{}, fmt.Errorf(buildErrorMsg(configErrors))
 	}
 
-	log.Printf("SECRETS: %+v\n", sec)
-
 	return sec, nil
 }
 
