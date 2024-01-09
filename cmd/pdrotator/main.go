@@ -8,7 +8,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -23,9 +28,17 @@ type event struct {
 }
 
 type pagerDutyConfig struct {
-	Region string
 	ID     string
+	Region string
 	Secret string
+	Scopes []string
+}
+
+type pagerDutyResponse struct {
+	TokenType   string `json:"token_type"`
+	AccessToken string `json:"access_token"`
+	Scope       string `json:"scope"`
+	ExpiresIn   int    `json:"expires_in"`
 }
 
 func main() {
@@ -33,6 +46,8 @@ func main() {
 }
 
 func runLambda(ctx context.Context, e *event) (string, error) {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.Printf("starting pdrotator from event: %+v\n", e)
 	svcCfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(os.Getenv("AWS_REGION")))
 	if err != nil {
 		return "", fmt.Errorf("could not initialize aws svc cfg: %s", err)
@@ -91,33 +106,41 @@ func runLambda(ctx context.Context, e *event) (string, error) {
 }
 
 func createSecret(ctx context.Context, svc *secretsmanager.Client, e *event) error {
+	// Confirm secret version exists
 	getInput := secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(e.SecretID),
 		VersionStage: aws.String("AWSCURRENT"),
 	}
-	// Does current secret exist?
-	_, gerr := svc.GetSecretValue(ctx, &getInput)
+	currentSecret, gerr := svc.GetSecretValue(ctx, &getInput)
 	if gerr != nil {
 		return fmt.Errorf("unable to GetSecretValue: %s", gerr)
 	}
 
-	// Get PD OAuth Token settings
+	// Parse out the instance name from the secret name
+	instance := strings.Split(aws.ToString(currentSecret.Name), "/")
+	// Get configuration, put it into the struct
+	var pdrotator_config_path string
+	if os.Getenv("PDROTATOR_CONFIG_PATH") == "" {
+		pdrotator_config_path = "deputize/source/pagerduty"
+	} else {
+		pdrotator_config_path = os.Getenv("PDROTATOR_CONFIG_PATH")
+	}
 	getPDInput := secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String("deputize/source/pagerduty"),
+		SecretId:     aws.String(pdrotator_config_path),
 		VersionStage: aws.String("AWSCURRENT"),
 	}
-
 	pdConfig, gperr := svc.GetSecretValue(ctx, &getPDInput)
 	if gperr != nil {
 		return fmt.Errorf("unable to GetSecretValue: %s", gperr)
 	}
-
 	var cfg map[string]pagerDutyConfig
-
-	json.Unmarshal([]byte(*pdConfig.SecretString), &cfg)
+	perr := json.Unmarshal([]byte(*pdConfig.SecretString), &cfg)
+	if perr != nil {
+		return fmt.Errorf("cant unmarshal json from secret manager: %s", perr)
+	}
 
 	// Get new PD Token
-	token, perr := getPDToken()
+	token, perr := getPDToken(cfg[instance[len(instance)-1]], instance[len(instance)-1])
 	if perr != nil {
 		return fmt.Errorf("unable to get PD token: %s", perr)
 	}
@@ -126,7 +149,7 @@ func createSecret(ctx context.Context, svc *secretsmanager.Client, e *event) err
 	setInput := secretsmanager.PutSecretValueInput{
 		SecretId:           aws.String(e.SecretID),
 		ClientRequestToken: aws.String(e.ClientRequestToken),
-		SecretString:       aws.String(token),
+		SecretString:       aws.String(token.AccessToken),
 		VersionStages:      []string{"AWSPENDING"},
 	}
 	_, serr := svc.PutSecretValue(ctx, &setInput)
@@ -166,7 +189,6 @@ func finishSecret(ctx context.Context, svc *secretsmanager.Client, e *event) err
 			}
 			current_version = k
 		}
-		break
 	}
 
 	uinput := secretsmanager.UpdateSecretVersionStageInput{
@@ -177,11 +199,52 @@ func finishSecret(ctx context.Context, svc *secretsmanager.Client, e *event) err
 	}
 	_, uerr := svc.UpdateSecretVersionStage(ctx, &uinput)
 	if uerr != nil {
-		return fmt.Errorf("unable to UpdateSecretVersionStage: %s", err)
+		return fmt.Errorf("unable to UpdateSecretVersionStage: %s", uerr)
 	}
 	return nil
 }
 
-func getPDToken() (string, error) {
-	return "", nil
+func getPDToken(cfg pagerDutyConfig, instance string) (pagerDutyResponse, error) {
+	oAuthEndpoint := "https://identity.pagerduty.com/oauth/token"
+
+	params := url.Values{}
+	params.Add("grant_type", "client_credentials")
+	params.Add("client_id", cfg.ID)
+	params.Add("client_secret", cfg.Secret)
+	params.Add("scope", fmt.Sprintf("as_account-%s.%s %s", cfg.Region, instance, strings.Join(cfg.Scopes, " ")))
+
+	data := strings.NewReader(params.Encode())
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", oAuthEndpoint, data)
+	if err != nil {
+		return pagerDutyResponse{}, fmt.Errorf("unable to POST to PD: %s", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := client.Do(req)
+	if err != nil {
+		return pagerDutyResponse{}, fmt.Errorf("unable to talk to PD: %s", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return pagerDutyResponse{}, fmt.Errorf("unable to read PD body: %s", err)
+	}
+
+	var token pagerDutyResponse
+
+	perr := json.Unmarshal(body, &token)
+	if perr != nil {
+		return pagerDutyResponse{}, fmt.Errorf("unable to parse json: %s", perr)
+	}
+
+	return token, nil
+}
+
+func contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
 }
