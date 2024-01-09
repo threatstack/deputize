@@ -12,10 +12,14 @@ import (
 	"github.com/PagerDuty/go-pagerduty"
 )
 
-func getPagerdutyInfo(ctx context.Context, authToken string, schedules []string) ([]string, error) {
+func getPagerdutyInfo(ctx context.Context, withOAuth bool, authToken string, schedules []string) ([]string, error) {
 	var newOnCallEmails []string
-
-	pdClient := pagerduty.NewClient(authToken)
+	var pdClient *pagerduty.Client
+	if withOAuth {
+		pdClient = pagerduty.NewOAuthClient(authToken)
+	} else {
+		pdClient = pagerduty.NewClient(authToken)
+	}
 	var lsSchedulesOpts pagerduty.ListSchedulesOptions
 	if allSchedulesPD, err := pdClient.ListSchedulesWithContext(ctx, lsSchedulesOpts); err != nil {
 		return []string{}, err

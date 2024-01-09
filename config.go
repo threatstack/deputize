@@ -57,6 +57,8 @@ type deputizeLDAPConfig struct {
 type deputizePDConfig struct {
 	Enabled         bool
 	OnCallSchedules []string
+	WithOAuth       bool
+	OAuthSecretPath string
 }
 
 type deputizeSlackConfig struct {
@@ -90,6 +92,11 @@ func validateConfig(cfg *deputizeConfig) error {
 	if cfg.Source.PagerDuty.Enabled {
 		if len(cfg.Source.PagerDuty.OnCallSchedules) == 0 {
 			configErrors = append(configErrors, "Pagerduty Source: No On Call Groups Selected")
+		}
+		if cfg.Source.PagerDuty.WithOAuth {
+			if cfg.Source.PagerDuty.OAuthSecretPath == "" {
+				configErrors = append(configErrors, "Pagerduty Source: OAuth enabled, but OAuthSecretPath is not configured")
+			}
 		}
 	}
 
@@ -167,9 +174,20 @@ func buildSecrets(c *deputizeConfig) (deputizeSecrets, error) {
 	var sec deputizeSecrets
 	json.Unmarshal([]byte(*result.SecretString), &sec)
 
-	if c.Source.PagerDuty.Enabled && sec.PDAuthToken == "" {
+	if c.Source.PagerDuty.Enabled && !c.Source.PagerDuty.WithOAuth && sec.PDAuthToken == "" {
 		configErrors = append(configErrors, "PagerDuty source is enabled, but there's an empty or nonexistant value for PDAuthToken in AWS Secrets Manager")
 	}
+	if c.Source.PagerDuty.Enabled && c.Source.PagerDuty.WithOAuth {
+		input := &secretsmanager.GetSecretValueInput{
+			SecretId: aws.String(c.Source.PagerDuty.OAuthSecretPath),
+		}
+		result, err := svc.GetSecretValue(context.TODO(), input)
+		if err != nil {
+			return deputizeSecrets{}, fmt.Errorf("could not get PD OAuth secret: %s", err)
+		}
+		sec.PDAuthToken = *result.SecretString
+	}
+
 	if c.Sinks.Gitlab.Enabled && sec.GitlabAuthToken == "" {
 		configErrors = append(configErrors, "Gitlab sink is enabled, but there's an empty or nonexistant GitlabAuthToken value in AWS Secrets Manager")
 	}

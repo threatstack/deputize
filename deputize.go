@@ -30,7 +30,7 @@ func runLambda(ctx context.Context, cfg *deputizeConfig) (string, error) {
 		return "", err
 	}
 
-	oncallEmails, err := getPagerdutyInfo(ctx, sec.PDAuthToken, cfg.Source.PagerDuty.OnCallSchedules)
+	oncallEmails, err := getPagerdutyInfo(ctx, cfg.Source.PagerDuty.WithOAuth, sec.PDAuthToken, cfg.Source.PagerDuty.OnCallSchedules)
 	if err != nil {
 		return "", err
 	}
@@ -45,7 +45,7 @@ func runLambda(ctx context.Context, cfg *deputizeConfig) (string, error) {
 	}
 
 	if cfg.Sinks.Gitlab.Enabled {
-		gitlabApprovers, err := getPagerdutyInfo(ctx, sec.PDAuthToken, []string{cfg.Sinks.Gitlab.ApproverSchedule})
+		gitlabApprovers, err := getPagerdutyInfo(ctx, cfg.Source.PagerDuty.WithOAuth, sec.PDAuthToken, []string{cfg.Sinks.Gitlab.ApproverSchedule})
 		if err != nil {
 			return "", err
 		}
