@@ -1,5 +1,7 @@
-*.test
-config.json
-deputize
-deputize.zip
+.DS_Store
+*.json
+*.zip
 *.pem
+deputize
+cmd/pdrotator/pdrotator.zip
+cmd/pdrotator/pdrotator
