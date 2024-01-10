@@ -181,15 +181,10 @@ You can perform local testing with by using the AWS Lambda Docker Images. Replac
 
 1. Build a local binary with `GOOS=linux go build`
 2. Create a container: `docker build --platform linux/arm64 -t deputize:test .`
-3. Run the container: `docker run --platform linux/arm64 -p 9000:8080 deputize:test`
+3. Run the container: `docker run --platform linux/arm64 -p 9000:8080 -v ~/.aws:/root/.aws deputize:test`
+    * The `-v ~/.aws:/root/.aws` will map your local AWS creds into the container; required for pulling AWS Secrets Manager items
 4. Put the deputize configuration in `config.json`
-4. In another window, invoke the function: `curl "http://localhost:9000/2015-03-31/functions/function/invocations" -d @config.json`
+5. In another window, invoke the function: `curl "http://localhost:9000/2015-03-31/functions/function/invocations" -d @config.json`
 
 To get LDAP connectivity working in the container, set `Server` to `host.docker.internal`. You may find the `InsecureSkipVerify` flag helpful in this case, but it's not something you'd want to deploy into production.
 
-To get AWS Secret Manager integration working in your local container, you could add the following ENV vars to `Dockerfile` - just make sure to remove when you're done.
-```
-ENV AWS_ACCESS_KEY_ID "..."
-ENV AWS_SECRET_ACCESS_KEY "..."
-ENV AWS_SESSION_TOKEN "..."
-```
