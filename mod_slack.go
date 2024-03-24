@@ -73,12 +73,9 @@ func updateSlack(cfg deputizeSlackConfig, pdOnCallEmails []string, slackAuthToke
 			if cfg.PostMessage {
 				slackParams := slack.PostMessageParameters{}
 				slackParams.AsUser = true
-
-				for _, channel := range cfg.Channels {
-					_, _, err := slackAPI.PostMessage(channel, slack.MsgOptionPostMessageParameters(slackParams), slack.MsgOptionText(topic, false))
-					if err != nil {
-						log.Printf("Warning: Got %s back from Slack API\n", err)
-					}
+				_, _, err := slackAPI.PostMessage(channel, slack.MsgOptionPostMessageParameters(slackParams), slack.MsgOptionText(topic, false))
+				if err != nil {
+					log.Printf("Warning: Got %s back from Slack API\n", err)
 				}
 			}
 		}
