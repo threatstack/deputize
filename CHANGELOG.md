@@ -2,6 +2,7 @@
 Deputize has had a few different iterations - we started maintaining a changelog at version 4.
 
 ## 4.1.1
+* Deps: Bumped all first-line deps to latest; bumped indirect protobuf to address CVE-2024-24786.
 * Slack: Fixed the bug where Deputize would post the on call message == to the amount of channels in the `Channels` config option.
 * Pagerduty: Used the query option in the PD API so that we don't have to pull down the full list of schedules, saves me from dealing with pagination.
 
