@@ -60,7 +60,7 @@ func updateSlack(cfg deputizeSlackConfig, pdOnCallEmails []string, slackAuthToke
 
 			}
 			if len(channelTopic) > 1 {
-				_, err := slackAPI.SetTopicOfConversation(channel, fmt.Sprintf("%s |%s", topic, channelTopic[1]))
+				_, err := slackAPI.SetTopicOfConversation(channel, fmt.Sprintf("%s |%s", topic, strings.Join(channelTopic[1:], "|")))
 				if err != nil {
 					log.Printf("Warning: Got %s back from Slack API\n", err)
 				}
