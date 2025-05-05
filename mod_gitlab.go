@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/xanzy/go-gitlab"
+	"gitlab.com/gitlab-org/api/client-go"
 )
 
 func updateGitlab(cfg deputizeGitlabConfig, pdOnCallEmails []string, gitlabAuthToken string) error {

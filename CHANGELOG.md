@@ -1,6 +1,13 @@
 # Changelog
 Deputize has had a few different iterations - we started maintaining a changelog at version 4.
 
+## 4.1.3
+* Deps: Bumped all first-line deps to latest, swapped `github.com/xanzy/go-gitlab` for the official `gitlab.com/gitlab-org/api/client-go`
+* LDAP: Fixed a bug where if there were 0 members in the LDAP group the code to update the group never ran.
+
+## 4.1.2
+* Deps: Bumped all first-line deps to latest; 
+
 ## 4.1.1
 * Deps: Bumped all first-line deps to latest; bumped indirect protobuf to address CVE-2024-24786.
 * Slack: Fixed the bug where Deputize would post the on call message == to the amount of channels in the `Channels` config option.
