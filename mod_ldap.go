@@ -68,6 +68,8 @@ func updateLDAP(cfg deputizeLDAPConfig, pdOnCallEmails []string, ldappw string) 
 			if err = client.Modify(delUsers); err != nil {
 				return fmt.Errorf("unable to delete existing users from LDAP: %s", err)
 			}
+		}
+		if len(resolvedLDAPOnCallUIDs) > 0 {
 			addUsers := ldap.NewModifyRequest(onCallGroupDN)
 			addUsers.Add(cfg.MemberAttribute, resolvedLDAPOnCallUIDs)
 			if err = client.Modify(addUsers); err != nil {
