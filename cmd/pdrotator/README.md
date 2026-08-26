@@ -74,8 +74,8 @@ Create a new IAM role for the lambda that will manage the PD OAuth token. PDRota
 ```
 
 ### Upload the Lambda
-* Build the function `GOOS=linux GOARCH=amd64 go build && zip pdrotator.zip pdrotator` and then upload it to AWS.
-* Configure the handler to be `pdrotator`
+* Build the function `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap && zip pdrotator.zip bootstrap` and then upload it to AWS.
+* Select the `provided.al2023` runtime and configure the handler as `bootstrap`
 * 128MB of memory is enough for this function
 * Add a resource policy to allow `lambda:InvokeFunction` from `secretsmanager.amazonaws.com`
 

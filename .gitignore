@@ -3,5 +3,6 @@
 *.zip
 *.pem
 deputize
+bootstrap
 cmd/pdrotator/pdrotator.zip
 cmd/pdrotator/pdrotator

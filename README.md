@@ -109,16 +109,16 @@ If you're planning on using the LDAP sink and the LDAP server is inside your VPC
 ```
 
 ### Package up the binary and truststore
-You'll need to build a linux amd64 binary with a golang toolchain. Run `GOOS=linux GOARCH=amd64 go build`. 
+You'll need to build a statically linked Linux amd64 binary named `bootstrap` with a Go toolchain. Run `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o bootstrap`.
 
 If you're using the LDAP sink, make sure you've put the root CA for your LDAP server in `truststore.pem`.
 
-Combine the files into a zip file you can upload with `zip deputize.zip deputize truststore.pem`
+Combine the files into a zip file you can upload with `zip deputize.zip bootstrap truststore.pem`.
 
 ### Create the Lambda function
 1. Specify the IAM execution role you created above
 2. Upload the zip file
-3. Configure the entrypoint (`deputize`), and RAM settings (128mb is fine)
+3. Select the `provided.al2023` runtime, configure the handler as `bootstrap`, and set the RAM (128 MB is sufficient)
 4. (if using the LDAP sink) Configure the VPC connectivity - subnets and security groups
 
 ### Invoke the function
@@ -179,7 +179,7 @@ If you are signing on behalf of a company, you represent that you are legally en
 ### Testing Locally
 You can perform local testing with by using the AWS Lambda Docker Images. Replace `arm64` with `amd64` if you're using an x86-64 flavored processor.
 
-1. Build a local binary with `GOOS=linux go build`
+1. Build a local binary with `CGO_ENABLED=0 GOOS=linux go build -tags lambda.norpc -o bootstrap`
 2. Create a container: `docker build --platform linux/arm64 -t deputize:test .`
 3. Run the container: `docker run --platform linux/arm64 -p 9000:8080 -v ~/.aws:/root/.aws deputize:test`
     * The `-v ~/.aws:/root/.aws` will map your local AWS creds into the container; required for pulling AWS Secrets Manager items

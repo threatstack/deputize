@@ -1,7 +1,7 @@
-FROM public.ecr.aws/lambda/go:1
+FROM public.ecr.aws/lambda/provided:al2023
 
 # Copy function handler executable
-COPY deputize ${LAMBDA_TASK_ROOT}
+COPY bootstrap ${LAMBDA_RUNTIME_DIR}
 
-# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-CMD [ "deputize" ]
+# Set the CMD to the custom runtime executable
+CMD [ "bootstrap" ]
